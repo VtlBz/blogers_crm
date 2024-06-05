@@ -1,0 +1,24 @@
+import os
+from pathlib import Path
+
+from <way.to.module>.logging import get_log_configuration
+from <way.to.module>.logging.models import LogConf, LogLevel
+
+LOG_BASE_DIR: Path = Path(os.path.expanduser("~")) / os.getenv(
+    "COMPOSE_PROJECT_NAME", "UntitledProject"
+)
+
+DEBUG_STATE = globals().get("DEBUG_STATE", False)
+
+log_conf: LogConf = get_log_configuration(LOG_BASE_DIR)
+log_conf.diagnose = DEBUG_STATE
+
+default_log_level: str = LogLevel.DEBUG.name if DEBUG_STATE else LogLevel.WARNING.name
+
+
+def get_logger(module_name: str, log_level: str = default_log_level):
+    log_conf.level = log_level
+    return log_conf.get_logger(module_name)
+
+< in modules: >
+logger = get_logger(__name__)

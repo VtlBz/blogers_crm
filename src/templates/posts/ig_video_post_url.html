@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Video Post</title>
+</head>
+<body style="text-align: center;">
+    <div>
+        <form method="post" action="{% url 'ig-post-url' %}">
+            {% csrf_token %}
+            {{ url_form.as_p }}
+            <br>
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
+    <div>
+        <br>
+        <br>
+    </div>
+    <div>
+        <table border="1" style="margin: 0 auto;">
+            <tr>
+                <td>View_count:</td>
+                <td>Likes_count:</td>
+                <td>Comments_count:</td>
+            </tr>
+            <tr>
+                <td>{{ post_form.view_count.value }}</td>
+                <td>{{ post_form.likes_count.value }}</td>
+                <td>{{ post_form.comments_count.value }}</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

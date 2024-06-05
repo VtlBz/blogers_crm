@@ -1,0 +1,31 @@
+services:
+
+  database:
+    image: postgres:15.5-alpine3.19
+    container_name: ${COMPOSE_PROJECT_NAME}-db
+    restart: on-failure
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    ports:
+      - ${POSTGRES_PORT}:5432
+    networks:
+      - lan
+    env_file:
+      - infra/.env
+
+volumes:
+  pg_data:
+
+
+networks:
+  lan:
+    driver: bridge

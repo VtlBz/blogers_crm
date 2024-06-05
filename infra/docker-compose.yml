@@ -1,0 +1,83 @@
+services:
+
+  database:
+    image: postgres:15.5-alpine3.19
+    container_name: ${COMPOSE_PROJECT_NAME}-db
+    restart: on-failure
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    networks:
+      - lan
+    env_file:
+      - .env
+
+  backend:
+    image: vtlbz/blogers-crm:0.0.1-alpine3.19
+    container_name: ${COMPOSE_PROJECT_NAME}-srv
+    restart: on-failure
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:8000/api/v1/healthcheck/status/ || exit 1"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - static_value:/blogers_csm_backend/static/
+      - media_value:/blogers_csm_backend/media/
+    networks:
+      - lan
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:mainline-alpine-perl
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    restart: on-failure
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:80/api/v1/healthcheck/ngnx/ || exit 1"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./nginx_configs/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx_configs/conf.d:/etc/nginx/conf.d:ro
+      - static_value:/var/websrv/static/
+      - media_value:/var/websrv/media/
+      - nginx_value:/var/websrv/nginx_data/
+    ports:
+      - 80:80
+    networks:
+      - lan
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  pg_data:
+  static_value:
+  media_value:
+  nginx_value:
+
+
+networks:
+  lan:
+    driver: bridge
